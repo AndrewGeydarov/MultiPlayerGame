@@ -1,0 +1,12 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:Style src="Results.uss" />
+    <ui:VisualElement name="root" class="results-root">
+        <ui:VisualElement name="overlay" class="results-overlay">
+            <ui:VisualElement name="container" class="results-container">
+                <ui:Label name="results-title" text="Результаты раунда" class="results-title" />
+                <ui:Label name="winner-label" text="Победитель: ..." class="winner-label" />
+                <ui:Button name="btn-back-menu" text="Назад в меню" class="back-menu-button" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

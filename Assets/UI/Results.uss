@@ -1,0 +1,66 @@
+.results-root {
+    flex-grow: 1;
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.results-overlay {
+    flex-grow: 1;
+    background-color: rgba(8, 12, 20, 0.84);
+    align-items: center;
+    justify-content: center;
+}
+
+.results-container {
+    width: 900px;
+    max-width: 92%;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 48px;
+    background-color: rgba(16, 24, 38, 0.95);
+    border-radius: 22px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-color: rgba(120, 160, 220, 0.35);
+    border-bottom-color: rgba(120, 160, 220, 0.35);
+    border-left-color: rgba(120, 160, 220, 0.35);
+    border-right-color: rgba(120, 160, 220, 0.35);
+}
+
+.results-title {
+    font-size: 48px;
+    color: rgb(224, 236, 255);
+    margin-bottom: 14px;
+    -unity-text-align: middle-center;
+    -unity-font-style: bold;
+}
+
+.winner-label {
+    font-size: 72px;
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+    margin-bottom: 30px;
+    -unity-text-align: middle-center;
+    white-space: normal;
+}
+
+.back-menu-button {
+    width: 360px;
+    height: 72px;
+    font-size: 30px;
+    -unity-font-style: bold;
+    border-radius: 14px;
+    border-width: 0;
+    background-color: rgb(70, 125, 200);
+    color: rgb(255, 255, 255);
+}
+
+.back-menu-button:hover {
+    background-color: rgb(88, 146, 226);
+    scale: 1.05 1.05;
+}

@@ -1,0 +1,14 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:Style src="MainMenu.uss" />
+    <ui:VisualElement name="root" class="root">
+        <ui:VisualElement name="container" class="container">
+            <ui:VisualElement name="logo" class="logo" />
+            <ui:Label name="subtitle" text="Выберите игру" class="subtitle" />
+            <ui:VisualElement name="buttons-container" class="buttons-container">
+                <ui:Button name="btn-crocodile" text="Крокодил" class="game-button crocodile-btn" />
+                <ui:Button name="btn-tower" text="Башня" class="game-button tower-btn" />
+                <ui:Button name="btn-memory" text="Память" class="game-button memory-btn" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

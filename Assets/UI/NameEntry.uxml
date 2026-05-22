@@ -1,0 +1,21 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:Style src="NameEntry.uss" />
+    <ui:VisualElement name="root" class="root">
+        <ui:VisualElement name="container" class="container">
+            <ui:Label name="title" text="Подтвердите игроков" class="title" />
+            <ui:Label name="subtitle" text="Введите имена перед стартом мини-игры" class="subtitle" />
+            <ui:VisualElement name="player1-row" class="player-row">
+                <ui:VisualElement name="color-indicator-1" class="color-indicator color-p1" />
+                <ui:TextField name="input-player1" label="" value="Игрок 1" class="name-input" />
+            </ui:VisualElement>
+            <ui:VisualElement name="player2-row" class="player-row">
+                <ui:VisualElement name="color-indicator-2" class="color-indicator color-p2" />
+                <ui:TextField name="input-player2" label="" value="Игрок 2" class="name-input" />
+            </ui:VisualElement>
+            <ui:VisualElement name="buttons-row" class="buttons-row">
+                <ui:Button name="btn-back" text="Назад" class="back-button" />
+                <ui:Button name="btn-start" text="Начать игру" class="start-button" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

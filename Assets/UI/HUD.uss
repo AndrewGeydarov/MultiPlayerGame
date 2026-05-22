@@ -1,0 +1,57 @@
+.hud-root {
+    flex-grow: 1;
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.top-bar {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    background-color: rgba(0, 0, 0, 0.5);
+    height: 60px;
+}
+
+.turn-label {
+    font-size: 28px;
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+}
+
+.score-label {
+    font-size: 28px;
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+}
+
+.timer-label {
+    font-size: 28px;
+    color: rgb(240, 245, 255);
+    -unity-font-style: bold;
+    min-width: 180px;
+    -unity-text-align: middle-center;
+}
+
+.message-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+    display: none;
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+.message-text {
+    font-size: 64px;
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.7);
+}

@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/MainMenu.unity
+    guid: 86e37e3a9421b1c4fac10b4092bb4629
+  - enabled: 1
+    path: Assets/Scenes/Crocodile.unity
+    guid: 3b11953253a1c6148abdd670395953ce
+  - enabled: 1
+    path: Assets/Scenes/TowerBuilder.unity
+    guid: 5823892ef0419c74ca94dd4bbe314922
+  - enabled: 1
+    path: Assets/Scenes/Memory.unity
+    guid: df2e6d963be4f5f4a8b0263d8142cc37
+  m_configObjects:
+    com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
+  m_UseUCBPForAssetBundles: 0

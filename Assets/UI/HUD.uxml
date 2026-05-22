@@ -1,0 +1,13 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:Style src="HUD.uss" />
+    <ui:VisualElement name="root" class="hud-root">
+        <ui:VisualElement name="top-bar" class="top-bar">
+            <ui:Label name="turn-label" text="Ход: ..." class="turn-label" />
+            <ui:Label name="timer-label" text="Время: 00" class="timer-label" />
+            <ui:Label name="score-label" text="Счёт: 0 - 0" class="score-label" />
+        </ui:VisualElement>
+        <ui:VisualElement name="message-overlay" class="message-overlay">
+            <ui:Label name="message-text" text="" class="message-text" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

@@ -1,0 +1,78 @@
+.root {
+    flex-grow: 1;
+    background-image: url('project://database/Assets/Sprites/menu_background.png');
+    -unity-background-scale-mode: scale-and-crop;
+    align-items: center;
+    justify-content: center;
+}
+
+.container {
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+}
+
+.logo {
+    width: 500px;
+    height: 200px;
+    background-image: url('project://database/Assets/Sprites/game_logo.png');
+    -unity-background-scale-mode: scale-to-fit;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    font-size: 28px;
+    color: rgb(200, 210, 225);
+    margin-bottom: 50px;
+    -unity-text-align: middle-center;
+}
+
+.buttons-container {
+    align-items: center;
+    justify-content: center;
+}
+
+.game-button {
+    width: 400px;
+    height: 80px;
+    font-size: 32px;
+    -unity-font-style: bold;
+    margin: 10px;
+    border-radius: 16px;
+    border-width: 0;
+    color: rgb(255, 255, 255);
+    transition-duration: 0.15s;
+}
+
+.game-button:hover {
+    scale: 1.05 1.05;
+    transition-duration: 0.15s;
+}
+
+.game-button:active {
+    scale: 0.97 0.97;
+}
+
+.crocodile-btn {
+    background-color: rgb(72, 187, 120);
+}
+
+.crocodile-btn:hover {
+    background-color: rgb(56, 161, 105);
+}
+
+.tower-btn {
+    background-color: rgb(66, 153, 225);
+}
+
+.tower-btn:hover {
+    background-color: rgb(49, 130, 206);
+}
+
+.memory-btn {
+    background-color: rgb(213, 63, 140);
+}
+
+.memory-btn:hover {
+    background-color: rgb(184, 50, 118);
+}
