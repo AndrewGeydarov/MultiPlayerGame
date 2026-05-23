@@ -363,5 +363,103 @@ namespace PartyMiniGames.MiniGames
             if (_movingBlock != null)
                 _movingBlock.SetActive(false);
         }
+
+        /// <summary>
+        /// Выполняет дроп и возвращает визуальные данные результата для сетевой синхронизации.
+        /// Вызывается только на СВОЕЙ башне локально; результат передаётся через RPC сопернику.
+        /// </summary>
+        public Network.DropResult DropBlockWithResult()
+        {
+            var result = new Network.DropResult();
+
+            if (!_active || _movingBlock == null)
+            {
+                result.Success = false;
+                return result;
+            }
+
+            // Сохраняем текущий цвет блока перед дропом.
+            Color blockColor = _movingBlockRenderer != null
+                ? _movingBlockRenderer.color : _blockColor;
+            result.Color = new Vector3(blockColor.r, blockColor.g, blockColor.b);
+
+            bool success = DropBlock();
+            result.Success = success;
+
+            // После DropBlock() последний поставленный блок — последний в _placedBlocks.
+            if (success && _placedBlocks.Count > 0)
+            {
+                var lastBlock = _placedBlocks[_placedBlocks.Count - 1];
+                if (lastBlock != null)
+                {
+                    result.PlacedCenterX = lastBlock.transform.localPosition.x;
+                    result.PlacedY       = lastBlock.transform.localPosition.y;
+                    // Ширину вычисляем из localScale (SetBlockWorldSize устанавливает scale как width).
+                    Sprite sp = GetBlockSprite();
+                    float spriteW = (sp != null && sp.bounds.size.x > 0.0001f)
+                        ? sp.bounds.size.x : 1f;
+                    result.PlacedWidth = lastBlock.transform.localScale.x * spriteW;
+                }
+            }
+            else if (!success)
+            {
+                result.PlacedCenterX = _movingBlock != null
+                    ? _movingBlock.transform.localPosition.x : 0f;
+                result.PlacedWidth   = _currentBlockWidth;
+                result.PlacedY       = _baseTopY + blockHeight * 0.5f + _blocksPlaced * blockHeight;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Воспроизводит визуальный результат дропа на УДАЛЁННОЙ башне (башне соперника).
+        /// Не выполняет физику/логику — только рисует блок по переданным координатам.
+        /// Вызывается ClientRpc'ом на стороне соперника.
+        /// </summary>
+        public void PlaceBlockVisual(float centerX, float width, float y,
+                                     Color blockColor, bool success)
+        {
+            if (!success)
+            {
+                // Промах у соперника — гасим его движущийся блок.
+                if (_movingBlock != null && _movingBlockRenderer != null)
+                {
+                    _movingBlockRenderer.color = new Color(0.5f, 0.5f, 0.5f, 0.5f);
+                    _active = false;
+                    IsEliminated = true;
+                }
+                return;
+            }
+
+            // Убираем текущий движущийся блок (он будет пересоздан ниже как "поставленный").
+            if (_movingBlock != null)
+            {
+                Destroy(_movingBlock);
+                _movingBlock = null;
+                _movingBlockRenderer = null;
+            }
+
+            // Создаём блок на переданных координатах.
+            var placed = new GameObject($"BlockRemote_{_blocksPlaced}");
+            placed.transform.SetParent(transform);
+            placed.transform.localPosition = new Vector3(centerX, y, 0f);
+
+            var sr = placed.AddComponent<SpriteRenderer>();
+            sr.sprite = GetBlockSprite();
+            sr.color = blockColor;
+            sr.sortingOrder = 1;
+            ConfigureRendererForPixelArt(sr);
+            SetBlockWorldSize(placed.transform, sr.sprite, width, blockHeight);
+
+            _placedBlocks.Add(placed);
+            _currentBlockWidth  = width;
+            _currentBlockCenterX = centerX;
+            _blocksPlaced++;
+            TowerHeight = _blocksPlaced * blockHeight;
+
+            // Создаём следующий движущийся блок для визуализации.
+            SpawnMovingBlock();
+        }
     }
 }

@@ -138,7 +138,7 @@ namespace PartyMiniGames.UI
             _root.pickingMode = PickingMode.Position;
             // Чтобы текст и поля были читаемыми в ConstantPixelSize-режиме.
             _root.style.fontSize = 14;
-            _root.style.color = Color.white;
+            _root.style.color = Color.black;
 
             var card = new VisualElement();
             card.style.width = 520;

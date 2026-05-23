@@ -38,6 +38,16 @@ namespace PartyMiniGames.MiniGames
         private void Start()
         {
             if (!Application.isPlaying) return;
+
+            // В сетевом режиме игру ведёт NetworkMemoryGame — отключаем локальную,
+            // чтобы не было конфликта обработки кликов и двойной инициализации карт.
+            var nb = PartyMiniGames.Network.NetworkBootstrap.Instance;
+            if (nb != null && (nb.IsHost || nb.IsClient))
+            {
+                enabled = false;
+                return;
+            }
+
             EnsureGameManager();
             LoadSpritesIfNeeded();
             EnsureValidPairCount();

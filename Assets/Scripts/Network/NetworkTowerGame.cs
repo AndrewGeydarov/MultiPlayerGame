@@ -10,24 +10,24 @@ namespace PartyMiniGames.Network
     /// <summary>
     /// Сетевая версия мини-игры "Башня".
     ///
-    /// Логика по требованию:
-    ///  - Сообщение "Промах" убрано полностью.
-    ///  - Проигрыша нет — раунд заканчивается только по таймеру.
-    ///  - Победитель — у кого больше блоков. Равное количество — ничья.
-    ///  - Если игрок промахнулся, он перестаёт строить, но раунд продолжается.
+    /// Исправление: теперь каждый дроп блока синхронизируется через ClientRpc,
+    /// и башня соперника визуально обновляется на ОБОИХ экранах.
     ///
-    /// Сеть:
-    ///  - Каждый игрок управляет своей башней на своём устройстве.
-    ///  - При нажатии Space/Enter локально пытаемся сбросить блок,
-    ///    результат (число блоков, флаг "остановлен") шлём на сервер ServerRpc.
-    ///  - Сервер ведёт таймер и определяет победителя.
+    /// Данные о дропе, которые нужно синхронизировать:
+    ///   - dropX          — где находился блок по X в момент нажатия
+    ///   - overlapWidth   — ширина итогового блока (после обрезки)
+    ///   - overlapCenterX — центр итогового блока по X
+    ///   - success        — попал ли игрок
+    ///
+    /// Вместо вызова DropBlock() на удалённой башне (который зависит от
+    /// локального состояния физики/движения) мы передаём результат и
+    /// воспроизводим его через PlaceBlockVisual().
     /// </summary>
     public class NetworkTowerGame : NetworkBehaviour
     {
         [Header("Настройки раунда")]
         public float roundDurationSeconds = 30f;
 
-        // Сетевой таймер — обновляется только сервером.
         private NetworkVariable<float> _timeRemaining =
             new NetworkVariable<float>(30f,
                 NetworkVariableReadPermission.Everyone,
@@ -76,8 +76,6 @@ namespace PartyMiniGames.Network
         {
             base.OnNetworkSpawn();
 
-            // Жизненный цикл сетевого объекта управляется NGO через destroyWithScene=true.
-
             _blocksP1.OnValueChanged += (_, __) => UpdateScoreDisplay();
             _blocksP2.OnValueChanged += (_, __) => UpdateScoreDisplay();
             _timeRemaining.OnValueChanged += (_, __) => UpdateTimerDisplay();
@@ -95,12 +93,14 @@ namespace PartyMiniGames.Network
                 _stoppedP1.Value = false;
                 _stoppedP2.Value = false;
 
-                string hostName = NetworkBootstrap.Instance != null ? NetworkBootstrap.Instance.LocalPlayerName : "Игрок 1";
+                string hostName = NetworkBootstrap.Instance != null
+                    ? NetworkBootstrap.Instance.LocalPlayerName : "Игрок 1";
                 _player1Name.Value = string.IsNullOrEmpty(hostName) ? "Игрок 1" : hostName;
             }
             else
             {
-                string myName = NetworkBootstrap.Instance != null ? NetworkBootstrap.Instance.LocalPlayerName : "Игрок 2";
+                string myName = NetworkBootstrap.Instance != null
+                    ? NetworkBootstrap.Instance.LocalPlayerName : "Игрок 2";
                 SubmitPlayerNameServerRpc(myName);
             }
 
@@ -113,24 +113,23 @@ namespace PartyMiniGames.Network
         {
             if (_bound) return;
 
-            // Отключаем локальный TowerGame, чтобы он не запускался параллельно.
             var localGame = FindAnyObjectByType<TowerGame>();
             if (localGame != null) localGame.enabled = false;
 
             _hud = FindAnyObjectByType<HudUI>();
             if (_hud != null) _hud.HideTurnLabel();
 
-            // Находим башни в сцене по имени.
             var towers = FindObjectsByType<TowerInstance>(FindObjectsSortMode.None);
-
-            // Сортируем по X-координате: левая = Tower_P1 = индекс 0, правая = Tower_P2 = индекс 1.
-            System.Array.Sort(towers, (a, b) => a.transform.position.x.CompareTo(b.transform.position.x));
+            System.Array.Sort(towers, (a, b) =>
+                a.transform.position.x.CompareTo(b.transform.position.x));
 
             if (towers.Length >= 1) _tower1 = towers[0];
             if (towers.Length >= 2) _tower2 = towers[1];
 
-            Color c1 = GameManager.Instance != null ? GameManager.Instance.GetPlayerColor(0) : new Color(1f, 0.42f, 0.42f);
-            Color c2 = GameManager.Instance != null ? GameManager.Instance.GetPlayerColor(1) : new Color(0.306f, 0.804f, 0.769f);
+            Color c1 = GameManager.Instance != null
+                ? GameManager.Instance.GetPlayerColor(0) : new Color(1f, 0.42f, 0.42f);
+            Color c2 = GameManager.Instance != null
+                ? GameManager.Instance.GetPlayerColor(1) : new Color(0.306f, 0.804f, 0.769f);
 
             if (_tower1 != null) _tower1.Initialize(0, c1);
             if (_tower2 != null) _tower2.Initialize(1, c2);
@@ -150,7 +149,6 @@ namespace PartyMiniGames.Network
         {
             if (!Application.isPlaying || !IsSpawned) return;
 
-            // Серверная сторона: обратный отсчёт таймера.
             if (IsServer && !_roundOver.Value)
             {
                 _timeRemaining.Value = Mathf.Max(0f, _timeRemaining.Value - Time.deltaTime);
@@ -164,10 +162,10 @@ namespace PartyMiniGames.Network
             if (_roundOver.Value) return;
             if (_localPlayerStopped) return;
 
-            int myIndex = NetworkBootstrap.Instance != null ? NetworkBootstrap.Instance.LocalPlayerIndex : 0;
-            bool dropPressed = PollDropInput();
-            if (dropPressed)
+            if (PollDropInput())
             {
+                int myIndex = NetworkBootstrap.Instance != null
+                    ? NetworkBootstrap.Instance.LocalPlayerIndex : 0;
                 TryDropLocal(myIndex);
             }
         }
@@ -188,6 +186,11 @@ namespace PartyMiniGames.Network
                    || Input.GetKeyDown(KeyCode.KeypadEnter);
         }
 
+        /// <summary>
+        /// Локально выполняем дроп блока на СВОЕЙ башне, затем передаём
+        /// результат всем остальным через ServerRpc → ClientRpc, чтобы они
+        /// тоже увидели изменения на экране.
+        /// </summary>
         private void TryDropLocal(int myIndex)
         {
             TowerInstance myTower = myIndex == 0 ? _tower1 : _tower2;
@@ -198,18 +201,33 @@ namespace PartyMiniGames.Network
                 return;
             }
 
-            bool success = myTower.DropBlock();
-            ReportDropServerRpc(myIndex, success, myTower.BlocksPlaced);
+            // Выполняем дроп локально и получаем результат.
+            DropResult result = myTower.DropBlockWithResult();
 
-            if (!success)
-            {
-                // Локально перестаём строить, но НИКАКОГО "Промах!" не показываем.
+            // Отправляем серверу: счёт + визуальные данные для синхронизации соперника.
+            ReportDropServerRpc(
+                myIndex,
+                result.Success,
+                myTower.BlocksPlaced,
+                result.PlacedCenterX,
+                result.PlacedWidth,
+                result.PlacedY,
+                result.Color);
+
+            if (!result.Success)
                 _localPlayerStopped = true;
-            }
         }
 
+        /// <summary>
+        /// Сервер принимает результат дропа, обновляет счёт и рассылает
+        /// ClientRpc для визуального обновления башни соперника у всех.
+        /// </summary>
         [ServerRpc(RequireOwnership = false)]
-        private void ReportDropServerRpc(int playerIndex, bool success, int blocksPlaced, ServerRpcParams rpcParams = default(ServerRpcParams))
+        private void ReportDropServerRpc(
+            int playerIndex, bool success, int blocksPlaced,
+            float placedCenterX, float placedWidth, float placedY,
+            Vector3 colorVec,
+            ServerRpcParams rpcParams = default(ServerRpcParams))
         {
             if (_roundOver.Value) return;
 
@@ -224,8 +242,36 @@ namespace PartyMiniGames.Network
                 if (!success) _stoppedP2.Value = true;
             }
 
+            // Рассылаем всем клиентам команду визуально обновить башню.
+            // Вызывающий клиент пропустит это (уже сделал локально).
+            ulong senderClientId = rpcParams.Receive.SenderClientId;
+            SyncBlockDropClientRpc(playerIndex, success, placedCenterX, placedWidth, placedY, colorVec, senderClientId);
+
             if (_stoppedP1.Value && _stoppedP2.Value)
                 EndRound();
+        }
+
+        /// <summary>
+        /// Приходит всем клиентам. Тот, кто сам сделал дроп, пропускает
+        /// (у него башня уже обновлена локально). Остальные воспроизводят
+        /// визуальный результат на башне противника.
+        /// </summary>
+        [ClientRpc]
+        private void SyncBlockDropClientRpc(
+            int playerIndex, bool success,
+            float placedCenterX, float placedWidth, float placedY,
+            Vector3 colorVec, ulong senderClientId)
+        {
+            // Пропускаем: тот клиент, который сам сделал дроп (уже обновлён).
+            ulong myClientId = NetworkManager.Singleton != null
+                ? NetworkManager.Singleton.LocalClientId : 0;
+            if (myClientId == senderClientId) return;
+
+            TowerInstance remoteTower = playerIndex == 0 ? _tower1 : _tower2;
+            if (remoteTower == null) return;
+
+            Color blockColor = new Color(colorVec.x, colorVec.y, colorVec.z, 1f);
+            remoteTower.PlaceBlockVisual(placedCenterX, placedWidth, placedY, blockColor, success);
         }
 
         private void EndRound()
@@ -248,8 +294,6 @@ namespace PartyMiniGames.Network
             else
                 ReportResultClientRpc(p1 > p2 ? 0 : 1);
 
-            // Даём кадр клиентам обработать ClientRpc'и, потом грузим MainMenu.
-            // При выгрузке сцены NetworkObject уничтожится автоматически.
             yield return null;
 
             if (NetworkBootstrap.Instance != null)
@@ -263,13 +307,12 @@ namespace PartyMiniGames.Network
             if (_hud == null) return;
 
             if (p1 == p2)
-            {
                 _hud.ShowMessage($"Ничья: {p1} – {p2}");
-            }
             else
             {
                 int winner = p1 > p2 ? 0 : 1;
-                string name = GameManager.Instance != null ? GameManager.Instance.GetPlayerName(winner) : "?";
+                string name = GameManager.Instance != null
+                    ? GameManager.Instance.GetPlayerName(winner) : "?";
                 _hud.ShowMessage($"{name} победил! ({p1} – {p2})");
             }
         }
@@ -303,9 +346,10 @@ namespace PartyMiniGames.Network
                 var go = new GameObject("GameManager");
                 go.AddComponent<GameManager>();
             }
-            GameManager.Instance.SetPlayers(_player1Name.Value.ToString(), _player2Name.Value.ToString());
+            GameManager.Instance.SetPlayers(
+                _player1Name.Value.ToString(),
+                _player2Name.Value.ToString());
 
-            // Перекрашиваем башни в цвета игроков.
             if (_tower1 != null)
                 _tower1.Initialize(0, GameManager.Instance.GetPlayerColor(0));
             if (_tower2 != null)
@@ -337,5 +381,17 @@ namespace PartyMiniGames.Network
             _hud.SetTimerText($"Время: {minutes:00}:{seconds:00}.{tenths}");
             _hud.SetTimerColor(t <= 10f ? new Color(1f, 0.45f, 0.45f) : Color.white);
         }
+    }
+
+    /// <summary>
+    /// Результат дропа блока — нужен для передачи визуальных данных по сети.
+    /// </summary>
+    public struct DropResult
+    {
+        public bool Success;
+        public float PlacedCenterX;
+        public float PlacedWidth;
+        public float PlacedY;
+        public Vector3 Color; // Vector3(r,g,b) — Color не сериализуется в RPC напрямую
     }
 }

@@ -22,20 +22,7 @@ namespace PartyMiniGames.UI
 
             btnCrocodile?.RegisterCallback<ClickEvent>(evt => OnGameSelected("Crocodile"));
             btnTower?.RegisterCallback<ClickEvent>(evt => OnGameSelected("TowerBuilder"));
-            // Memory в сетевой версии пока не реализован — показываем подсказку при клике.
-            btnMemory?.RegisterCallback<ClickEvent>(evt => OnMemoryClicked());
-        }
-
-        private void OnMemoryClicked()
-        {
-            // Если сетевой режим активен — сообщаем, что Memory в сети пока не доступен.
-            if (NetworkBootstrap.Instance != null &&
-                (NetworkBootstrap.Instance.IsHost || NetworkBootstrap.Instance.IsClient))
-            {
-                Debug.Log("Memory в сетевой версии пока не реализован. Используйте Крокодил или Башню.");
-                return;
-            }
-            OnGameSelected("Memory");
+            btnMemory?.RegisterCallback<ClickEvent>(evt => OnGameSelected("Memory"));
         }
 
         private void OnGameSelected(string sceneName)

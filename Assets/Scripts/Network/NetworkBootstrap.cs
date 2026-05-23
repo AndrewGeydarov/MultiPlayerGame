@@ -225,8 +225,9 @@ namespace PartyMiniGames.Network
             if (!_networkManager.IsServer) return;
 
             GameObject prefab = null;
-            if (sceneName == "Crocodile" && _prefabs != null) prefab = _prefabs.CrocodilePrefab;
+            if (sceneName == "Crocodile"     && _prefabs != null) prefab = _prefabs.CrocodilePrefab;
             else if (sceneName == "TowerBuilder" && _prefabs != null) prefab = _prefabs.TowerPrefab;
+            else if (sceneName == "Memory"   && _prefabs != null) prefab = _prefabs.MemoryPrefab;
 
             if (prefab == null) return;
 

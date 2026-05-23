@@ -28,17 +28,20 @@ namespace PartyMiniGames.Network
         // Заранее заданные хэши для каждого prefab'а — должны быть одинаковыми на хосте и клиенте.
         // Поскольку код одинаковый, константы тоже совпадают автоматически.
         public const uint CROCODILE_PREFAB_HASH = 0x1C2C0001;
-        public const uint TOWER_PREFAB_HASH = 0x1C2C0002;
+        public const uint TOWER_PREFAB_HASH     = 0x1C2C0002;
+        public const uint MEMORY_PREFAB_HASH    = 0x1C2C0003;
 
         private GameObject _crocodilePrefab;
         private GameObject _towerPrefab;
+        private GameObject _memoryPrefab;
 
         // Запоминаем зарегистрированные handler'ы для последующей отписки.
         private readonly Dictionary<uint, INetworkPrefabInstanceHandler> _registered =
             new Dictionary<uint, INetworkPrefabInstanceHandler>();
 
         public GameObject CrocodilePrefab => _crocodilePrefab;
-        public GameObject TowerPrefab => _towerPrefab;
+        public GameObject TowerPrefab     => _towerPrefab;
+        public GameObject MemoryPrefab    => _memoryPrefab;
 
         private void Awake()
         {
@@ -61,7 +64,8 @@ namespace PartyMiniGames.Network
         private void CreatePrefabTemplates()
         {
             _crocodilePrefab = CreatePrefabTemplate<NetworkCrocodileGame>("NetworkCrocodile_Template", CROCODILE_PREFAB_HASH);
-            _towerPrefab = CreatePrefabTemplate<NetworkTowerGame>("NetworkTower_Template", TOWER_PREFAB_HASH);
+            _towerPrefab     = CreatePrefabTemplate<NetworkTowerGame>("NetworkTower_Template",     TOWER_PREFAB_HASH);
+            _memoryPrefab    = CreatePrefabTemplate<NetworkMemoryGame>("NetworkMemory_Template",   MEMORY_PREFAB_HASH);
         }
 
         private GameObject CreatePrefabTemplate<T>(string name, uint hash) where T : NetworkBehaviour
@@ -126,7 +130,8 @@ namespace PartyMiniGames.Network
             _registered.Clear();
 
             RegisterOne(nm, _crocodilePrefab, CROCODILE_PREFAB_HASH);
-            RegisterOne(nm, _towerPrefab, TOWER_PREFAB_HASH);
+            RegisterOne(nm, _towerPrefab,     TOWER_PREFAB_HASH);
+            RegisterOne(nm, _memoryPrefab,    MEMORY_PREFAB_HASH);
         }
 
         private void RegisterOne(NetworkManager nm, GameObject prefab, uint hash)
@@ -156,7 +161,8 @@ namespace PartyMiniGames.Network
         public GameObject GetPrefabByHash(uint hash)
         {
             if (hash == CROCODILE_PREFAB_HASH) return _crocodilePrefab;
-            if (hash == TOWER_PREFAB_HASH) return _towerPrefab;
+            if (hash == TOWER_PREFAB_HASH)     return _towerPrefab;
+            if (hash == MEMORY_PREFAB_HASH)    return _memoryPrefab;
             return null;
         }
     }
